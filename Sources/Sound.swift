@@ -27,40 +27,6 @@
 import Foundation
 import AVFoundation
 
-#if os(iOS) || os(tvOS)
-/// SoundCategory is a convenient wrapper for AVAudioSessions category constants.
-    public enum SoundCategory {
-
-        /// Equivalent of AVAudioSessionCategoryAmbient.
-        case ambient
-        /// Equivalent of AVAudioSessionCategorySoloAmbient.
-        case soloAmbient
-        /// Equivalent of AVAudioSessionCategoryPlayback.
-        case playback
-        /// Equivalent of AVAudioSessionCategoryRecord.
-        case record
-        /// Equivalent of AVAudioSessionCategoryPlayAndRecord.
-        case playAndRecord
-
-        fileprivate var avFoundationCategory: String {
-            get {
-                switch self {
-                case .ambient:
-                    return AVAudioSessionCategoryAmbient
-                case .soloAmbient:
-                    return AVAudioSessionCategorySoloAmbient
-                case .playback:
-                    return AVAudioSessionCategoryPlayback
-                case .record:
-                    return AVAudioSessionCategoryRecord
-                case .playAndRecord:
-                    return AVAudioSessionCategoryPlayAndRecord
-                }
-            }
-        }
-    }
-#endif
-
 /// Sound is a class that allows you to easily play sounds in Swift. It uses AVFoundation framework under the hood.
 open class Sound {
 
@@ -76,16 +42,16 @@ open class Sound {
 
     #if os(iOS) || os(tvOS)
     /// Sound session. The default value is the shared `AVAudioSession` session.
-    public static var session: Session = AVAudioSession.sharedInstance()
+    public static var session: AVAudioSession = .sharedInstance()
 
     /// Sound category for current session. Using this variable is a convenient way to set AVAudioSessions category. The default value is .ambient.
-    public static var category: SoundCategory = {
-        let defaultCategory = SoundCategory.ambient
-        try? session.setCategory(defaultCategory.avFoundationCategory)
+    public static var category: AVAudioSession.Category = {
+        let defaultCategory: AVAudioSession.Category = .ambient
+        try? session.setCategory(defaultCategory, mode: .default)
         return defaultCategory
         }() {
         didSet {
-            try? session.setCategory(category.avFoundationCategory)
+            try? session.setCategory(category, mode: .default)
         }
     }
     #endif
@@ -369,15 +335,3 @@ extension AVAudioPlayer: Player, AVAudioPlayerDelegate {
     }
 
 }
-
-#if os(iOS) || os(tvOS)
-/// Session protocol. It duplicates `setCategory` method of `AVAudioSession` class.
-public protocol Session: class {
-    /// Set category for session.
-    ///
-    /// - Parameter category: category.
-    func setCategory(_ category: String) throws
-}
-
-extension AVAudioSession: Session {}
-#endif
